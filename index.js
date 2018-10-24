@@ -109,14 +109,16 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
     let sendMail = (mail) => {
         let mailOptions = {
             to: mail.to,
-            html: mail.text,
+            html: mail.html,
+            text: mail.text,
+
             subject: mail.subject,
             from: adapterOptions.fromAddress
         };
 
         return new Promise((resolve, reject) => {
 
-            if(adapterOptions.service=='SMTP'){
+            if(adapterOptions.service == 'SMTP'){
                 transporter.sendMail(mailOptions, (error, info) => {
                     if(error) {
                         console.log(error)
@@ -126,7 +128,47 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
                     }
                 });
             }
-            else if(adapterOptions.service=='Gmail'){
+            else if(adapterOptions.service == 'Gmail'){
+                transporterOAuth2Gmail.sendMail(mailOptions, (error, info) => {
+                    if(error) {
+                        console.error(error);
+                        reject(error);
+                    } else {
+                        resolve(info);
+                    }
+                });
+            }
+
+        });
+    };
+
+        /**
+     * Parse use this function by default for sends emails
+     * @param mail This object contain to address, subject and email text in plain text
+     * @returns {Promise}
+     */
+    let sendMail = (mail) => {
+        let mailOptions = {
+            to: mail.to,
+            html: mail.html,
+            text: mail.text,
+            subject: mail.subject,
+            from: adapterOptions.fromAddress
+        };
+
+        return new Promise((resolve, reject) => {
+
+            if(adapterOptions.service == 'SMTP'){
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if(error) {
+                        console.log(error)
+                        reject(error);
+                    } else {
+                        resolve(info);
+                    }
+                });
+            }
+            else if(adapterOptions.service == 'Gmail'){
                 transporterOAuth2Gmail.sendMail(mailOptions, (error, info) => {
                     if(error) {
                         console.log(error)
@@ -154,7 +196,8 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
         if (adapterOptions.templates && adapterOptions.templates.resetPassword) {
 
             return renderTemplate(adapterOptions.templates.resetPassword.template, data).then((result) => {
-                mail.text = result.html;
+                mail.html = result.html;
+                mail.text = result.text;
                 mail.subject = adapterOptions.templates.resetPassword.subject;
 
                 return sendMail(mail);
@@ -187,7 +230,8 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
         if (adapterOptions.templates && adapterOptions.templates.verifyEmail) {
 
             return renderTemplate(adapterOptions.templates.verifyEmail.template, data).then((result) => {
-                mail.text = result.html;
+                mail.html = result.html;
+                mail.text = result.text;
                 mail.subject = adapterOptions.templates.verifyEmail.subject;
 
                 return sendMail(mail);
