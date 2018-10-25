@@ -90,13 +90,13 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
         let emailTemplate = new EmailTemplate();
 
         return new Promise((resolve, reject) => {
-            emailTemplate.renderAll(data, templateDir, (err, result) => {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                } else {
-                    resolve(result);
-                }
+            emailTemplate.renderAll(templateDir, data)
+            .then((result) => {
+                resolve(result);
+            })
+            .catch((err) => {
+                console.error(err);
+                reject(err);
             });
         });
     };
@@ -111,34 +111,38 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
             to: mail.to,
             html: mail.html,
             text: mail.text,
-
             subject: mail.subject,
             from: adapterOptions.fromAddress
         };
 
         return new Promise((resolve, reject) => {
 
-            if(adapterOptions.service == 'SMTP'){
-                transporter.sendMail(mailOptions, (error, info) => {
-                    if(error) {
-                        console.log(error)
-                        reject(error);
-                    } else {
-                        resolve(info);
-                    }
-                });
+            try {
+                if(adapterOptions.service == 'SMTP') {
+                    transporter.sendMail(mailOptions, (error, info) => {
+                        if(error) {
+                            console.log(error)
+                            reject(error);
+                        } else {
+                            resolve(info);
+                        }
+                    });
+                }
+                else if(adapterOptions.service == 'Gmail') { 
+                    transporterOAuth2Gmail.sendMail(mailOptions, (error, info) => {
+                        if(error) {
+                            console.error(error);
+                            reject(error);
+                        } else {
+                            resolve(info);
+                        }
+                    });
+                } else {
+                    reject('Adapter not found.');
+                }
+            } catch (error) {
+                reject(error);
             }
-            else if(adapterOptions.service == 'Gmail'){
-                transporterOAuth2Gmail.sendMail(mailOptions, (error, info) => {
-                    if(error) {
-                        console.error(error);
-                        reject(error);
-                    } else {
-                        resolve(info);
-                    }
-                });
-            }
-
         });
     };
 
@@ -188,20 +192,20 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
 
         if (adapterOptions.templates && adapterOptions.templates.resetPassword) {
 
-            return renderTemplate(adapterOptions.templates.resetPassword.template, data).then((result) => {
+            return renderTemplate(adapterOptions.templates.resetPassword.template, data)
+            .then((result) => {
                 mail.html = result.html;
                 mail.text = result.text;
                 mail.subject = adapterOptions.templates.resetPassword.subject;
 
                 return sendMail(mail);
-            }, (e) => {
-
+            })
+            .catch((error) => {
                 return new Promise((resolve, reject) => {
-                    console.log(e)
-                    reject(e);
+                    console.error(error);
+                    reject(error);
                 });
             });
-
         } else {
             mail.text = data.link;
 
@@ -222,17 +226,18 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
 
         if (adapterOptions.templates && adapterOptions.templates.verifyEmail) {
 
-            return renderTemplate(adapterOptions.templates.verifyEmail.template, data).then((result) => {
+            return renderTemplate(adapterOptions.templates.verifyEmail.template, data)
+            .then((result) => {
                 mail.html = result.html;
                 mail.text = result.text;
                 mail.subject = adapterOptions.templates.verifyEmail.subject;
 
                 return sendMail(mail);
-            }, (e) => {
+            }).catch((error) => {
 
                 return new Promise((resolve, reject) => {
-                    console.log(e);
-                    reject(e);
+                    console.error(error);
+                    reject(error);
                 });
             });
 
@@ -246,6 +251,7 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
     return Object.freeze({
         sendMail: sendMail,
         renderTemplate: renderTemplate,
+        sendMailWithTemplate: sendMailWithTemplate,
         sendPasswordResetEmail: sendPasswordResetEmail,
         sendVerificationEmail: sendVerificationEmail
     });
