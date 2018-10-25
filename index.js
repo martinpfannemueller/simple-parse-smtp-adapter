@@ -7,19 +7,17 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
 
     if (!adapterOptions) {
         throw 'SimpleParseSMTPAdapter requires adapter options';
-    }
-    else if (adapterOptions.service == 'OAuth2Gmail') {
-        if (!adapterOptions || !adapterOptions.service|| !adapterOptions.type || !adapterOptions.user || 
+    } else if (adapterOptions.service == 'OAuth2Gmail') {
+        if (!adapterOptions || !adapterOptions.service|| !adapterOptions.type || !adapterOptions.user || !adapterOptions.email || 
             !adapterOptions.clientId || !adapterOptions.clientSecret|| !adapterOptions.refreshToken || !adapterOptions.accessToken ) {
             throw 'Gmail API Adapter requires service, type, user, clientId, clientSecret, refreshToken and accessToken';
         }
-    }
-    else if (adapterOptions.service == 'SMTP') {
-        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.host || !adapterOptions.fromAddress ) {
+    } else if (adapterOptions.service == 'SMTP') {
+        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.host || !adapterOptions.secure || !adapterOptions.email ) {
             throw 'SimpleParseSMTPAdapter requires user, password, host, and fromAddress';
         }
     } else {
-        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.service ) {
+        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.service || !adapterOptions.email) {
             throw 'SimpleParseSMTPAdapter please choose a supported service (OAuth2Gmail, SMTP, or other)';
         }
     }
@@ -43,10 +41,10 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     /**
      * Creates trasporter for send emails with OAuth2 Gmail
      */
-     let transporter = nodemailer.createTransport({
+     let transporterSMTP = nodemailer.createTransport({
         host: adapterOptions.host,
         port: adapterOptions.port,
-        secure: adapterOptions.isSSL,
+        secure: adapterOptions.secure,
         name: adapterOptions.name || '127.0.0.1',
         auth: {
             user: adapterOptions.user,
@@ -61,7 +59,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     /**
      * Creates trasporter for send emails with OAuth2 Gmail
      */
-    let genericTransporter = nodemailer.createTransport({
+    let transporterGeneric = nodemailer.createTransport({
         service: adapterOptions.service,
         auth: {
             user: adapterOptions.email, // Your email id
@@ -131,9 +129,9 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
                 if (adapterOptions.service == 'OAuth2Gmail') { 
                     selectedTransporter = transporterOAuth2Gmail;
                 } else if(adapterOptions.service == 'SMTP') {
-                    selectedTransporter = transporter;
+                    selectedTransporter = transporterSMTP;
                 } else {
-                    selectedTransporter = genericTransporter;
+                    selectedTransporter = transporterGeneric;
                 }
 
                 selectedTransporter.sendMail(mailOptions, (error, info) => {
@@ -171,7 +169,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
             }, (e) => {
 
                 return new Promise((resolve, reject) => {
-                    console.log(e)
+                    console.error(e);
                     reject(e);
                 });
             });
