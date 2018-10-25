@@ -8,17 +8,17 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     if (!adapterOptions) {
         throw 'SimpleParseSMTPAdapter requires adapter options';
     } else if (adapterOptions.service == 'OAuth2Gmail') {
-        if (!adapterOptions || !adapterOptions.service|| !adapterOptions.type || !adapterOptions.user || !adapterOptions.email || 
+        if (!adapterOptions || !adapterOptions.service|| !adapterOptions.type || !adapterOptions.user || !adapterOptions.fromAddress || 
             !adapterOptions.clientId || !adapterOptions.clientSecret|| !adapterOptions.refreshToken || !adapterOptions.accessToken ) {
-            throw 'Gmail API Adapter requires service, type, user, clientId, clientSecret, refreshToken and accessToken';
+            throw 'Gmail API Adapter requires service, type, fromAddress, user, clientId, clientSecret, refreshToken and accessToken';
         }
     } else if (adapterOptions.service == 'SMTP') {
-        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.host || !adapterOptions.secure || !adapterOptions.email ) {
-            throw 'SimpleParseSMTPAdapter requires user, password, host, and fromAddress';
+        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.host || !adapterOptions.secure || !adapterOptions.fromAddress ) {
+            throw 'SimpleParseSMTPAdapter requires user, password, host and fromAddress';
         }
     } else {
-        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.service || !adapterOptions.email) {
-            throw 'SimpleParseSMTPAdapter please choose a supported service (OAuth2Gmail, SMTP, or other)';
+        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.service || !adapterOptions.fromAddress) {
+            throw 'SimpleParseSMTPAdapter please choose a supported service (OAuth2Gmail, SMTP, or other) and enter user, password and fromAddress';
         }
     }
 
@@ -62,7 +62,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     let transporterGeneric = nodemailer.createTransport({
         service: adapterOptions.service,
         auth: {
-            user: adapterOptions.email, // Your email id
+            user: adapterOptions.user, // Your email id
             pass: adapterOptions.password // Your password }
         }
     });
