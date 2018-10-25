@@ -1,7 +1,7 @@
 "use strict";
 const path = require('path');
 const nodemailer = require("nodemailer");
-const EmailTemplate = require('email-templates').EmailTemplate;
+const EmailTemplate = require('email-templates');
 
 let SimpleParseSmtpAdapter = (adapterOptions) => {
 
@@ -86,13 +86,13 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param Object data object with data for use in template
      */
     let renderTemplate = (template, data) => {
-        let templateDir = template;
-        let html = new EmailTemplate(templateDir);
+        const templateDir = template;
+        let emailTemplate = new EmailTemplate();
 
         return new Promise((resolve, reject) => {
-            html.render(data, (err, result) => {
+            emailTemplate.renderAll(data, templateDir, (err, result) => {
                 if (err) {
-                    console.log(err)
+                    console.error(err);
                     reject(err);
                 } else {
                     resolve(result);
