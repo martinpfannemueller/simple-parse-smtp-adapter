@@ -3,29 +3,25 @@ const path = require('path');
 const nodemailer = require("nodemailer");
 const EmailTemplate = require('email-templates');
 
-let SimpleParseSmtpAdapter = (adapterOptions) => {
+const SimpleParseSmtpAdapter = (adapterOptions) => {
 
     if (!adapterOptions) {
         throw 'SimpleParseSMTPAdapter requires adapter options';
     }
-    else if(adapterOptions.service=='Gmail'){
-        if (!adapterOptions ||  
-            !adapterOptions.service|| 
-            !adapterOptions.type ||  
-            !adapterOptions.user || 
-            !adapterOptions.clientId || 
-            !adapterOptions.clientSecret|| 
-            !adapterOptions.refreshToken || 
-            !adapterOptions.accessToken ) {
-            throw 'SimpleParseSMTPAdapter requires service,type, user, clientId,clientSecret,refreshToken and accessToken';
+    else if (adapterOptions.service == 'OAuth2Gmail') {
+        if (!adapterOptions || !adapterOptions.service|| !adapterOptions.type || !adapterOptions.user || 
+            !adapterOptions.clientId || !adapterOptions.clientSecret|| !adapterOptions.refreshToken || !adapterOptions.accessToken ) {
+            throw 'Gmail API Adapter requires service, type, user, clientId, clientSecret, refreshToken and accessToken';
         }
     }
-    else if(adapterOptions.service=='SMTP'){
-            if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.host || !adapterOptions.fromAddress ) {
-                throw 'SimpleParseSMTPAdapter requires user, password, host, and fromAddress';
-            }
-    }else{
-            throw 'SimpleParseSMTPAdapter please choose service Gmail or SMTP';
+    else if (adapterOptions.service == 'SMTP') {
+        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.host || !adapterOptions.fromAddress ) {
+            throw 'SimpleParseSMTPAdapter requires user, password, host, and fromAddress';
+        }
+    } else {
+        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.service ) {
+            throw 'SimpleParseSMTPAdapter please choose a supported service (OAuth2Gmail, SMTP, or other)';
+        }
     }
 
     /**
@@ -58,6 +54,18 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
         },
         tls: {
             rejectUnauthorized: adapterOptions.isTlsRejectUnauthorized !== undefined ? adapterOptions.isTlsRejectUnauthorized : true
+        }
+    });
+
+
+    /**
+     * Creates trasporter for send emails with OAuth2 Gmail
+     */
+    let genericTransporter = nodemailer.createTransport({
+        service: adapterOptions.service,
+        auth: {
+            user: adapterOptions.email, // Your email id
+            pass: adapterOptions.password // Your password }
         }
     });
 
@@ -118,28 +126,24 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
         return new Promise((resolve, reject) => {
 
             try {
-                if(adapterOptions.service == 'SMTP') {
-                    transporter.sendMail(mailOptions, (error, info) => {
-                        if(error) {
-                            console.log(error)
-                            reject(error);
-                        } else {
-                            resolve(info);
-                        }
-                    });
-                }
-                else if(adapterOptions.service == 'Gmail') { 
-                    transporterOAuth2Gmail.sendMail(mailOptions, (error, info) => {
-                        if(error) {
-                            console.error(error);
-                            reject(error);
-                        } else {
-                            resolve(info);
-                        }
-                    });
+                let selectedTransporter;
+
+                if (adapterOptions.service == 'OAuth2Gmail') { 
+                    selectedTransporter = transporterOAuth2Gmail;
+                } else if(adapterOptions.service == 'SMTP') {
+                    selectedTransporter = transporter;
                 } else {
-                    reject('Adapter not found.');
+                    selectedTransporter = genericTransporter;
                 }
+
+                selectedTransporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.error(error);
+                        reject(error);
+                    } else {
+                        resolve(info);
+                    }
+                });
             } catch (error) {
                 reject(error);
             }
