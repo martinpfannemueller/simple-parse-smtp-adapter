@@ -147,7 +147,7 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param mail This object contain to address, subject and email text in plain text
      * @returns {Promise}
      */
-    let sendMail = (mail) => {
+    let sendMailWithTemplate = (mail) => {
         let mailOptions = {
             to: mail.to,
             html: mail.html,
@@ -180,6 +180,39 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
             }
 
         });
+    };
+
+    /**
+     * Send email using a specif template file
+     * @param data This object should contain {to}, {subject}, {template} and any variable that will be replaced in the template.
+     * @returns {Promise}
+     */
+    let sendMailWithTemplate = (data) => {
+        let mail = {
+            to: data.to,
+            subject: data.subject,
+            from: adapterOptions.fromAddress
+        };
+
+        if (data.template) {
+            return renderTemplate(data.template, data).then((result) => {
+                mail.html = result.html;
+                mail.text = result.text;
+
+                return sendMail(mail);
+            }, (e) => {
+
+                return new Promise((resolve, reject) => {
+                    console.log(e)
+                    reject(e);
+                });
+            });
+
+        } else {
+            return new Promise((resolve, reject) => {
+                reject('Template variable not specified');
+            });
+        }
     };
 
     /**
