@@ -142,46 +142,6 @@ let SimpleParseSmtpAdapter = (adapterOptions) => {
         });
     };
 
-        /**
-     * Parse use this function by default for sends emails
-     * @param mail This object contain to address, subject and email text in plain text
-     * @returns {Promise}
-     */
-    let sendMailWithTemplate = (mail) => {
-        let mailOptions = {
-            to: mail.to,
-            html: mail.html,
-            text: mail.text,
-            subject: mail.subject,
-            from: adapterOptions.fromAddress
-        };
-
-        return new Promise((resolve, reject) => {
-
-            if(adapterOptions.service == 'SMTP'){
-                transporter.sendMail(mailOptions, (error, info) => {
-                    if(error) {
-                        console.log(error)
-                        reject(error);
-                    } else {
-                        resolve(info);
-                    }
-                });
-            }
-            else if(adapterOptions.service == 'Gmail'){
-                transporterOAuth2Gmail.sendMail(mailOptions, (error, info) => {
-                    if(error) {
-                        console.log(error)
-                        reject(error);
-                    } else {
-                        resolve(info);
-                    }
-                });
-            }
-
-        });
-    };
-
     /**
      * Send email using a specif template file
      * @param data This object should contain {to}, {subject}, {template} and any variable that will be replaced in the template.
