@@ -156,7 +156,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     let sendMailWithTemplate = (data) => {
         let mail = {
             to: data.to,
-            subject: data.subject,
+            subject: data.subject || '',
             from: adapterOptions.fromAddress
         };
 
@@ -164,6 +164,10 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
             return renderTemplate(data.template, data).then((result) => {
                 mail.html = result.html;
                 mail.text = result.text;
+
+                if (result.subject) {
+                    mail.subject = result.subject;
+                }
 
                 return sendMail(mail);
             }, (e) => {
