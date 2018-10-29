@@ -23,10 +23,13 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     }
 
     /**
-     * Creates trasporter for send emails with OAuth2 Gmail
+     * Creates trasporter for OAuth2 Gmail
      */
     let transporterOAuth2Gmail = nodemailer.createTransport({
-        service: adapterOptions.service,
+        //service: adapterOptions.service,
+        host: adapterOptions.host,
+        port: adapterOptions.port,
+        secure: adapterOptions.secure,
         auth: {
             type: adapterOptions.type,
             user: adapterOptions.user,
@@ -39,7 +42,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     });
 
     /**
-     * Creates trasporter for send emails with OAuth2 Gmail
+     * Creates trasporter for SMTP
      */
      let transporterSMTP = nodemailer.createTransport({
         host: adapterOptions.host,
@@ -156,7 +159,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     let sendMailWithTemplate = (data) => {
         let mail = {
             to: data.to,
-            subject: data.subject || '',
+            subject: data.subject,
             from: adapterOptions.fromAddress
         };
 
@@ -164,10 +167,6 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
             return renderTemplate(data.template, data).then((result) => {
                 mail.html = result.html;
                 mail.text = result.text;
-
-                if (result.subject) {
-                    mail.subject = result.subject;
-                }
 
                 return sendMail(mail);
             }, (e) => {
