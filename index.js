@@ -9,8 +9,8 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     if (!adapterOptions) {
         throw 'SimpleParseSMTPAdapter requires adapter options';
     } else if (adapterOptions.service == 'OAuth2Gmail') {
-        if (!adapterOptions || !adapterOptions.service|| !adapterOptions.type || !adapterOptions.user || !adapterOptions.fromAddress || 
-            !adapterOptions.clientId || !adapterOptions.clientSecret|| !adapterOptions.refreshToken || !adapterOptions.accessToken ) {
+        if (_.isUndefined(adapterOptions) || _.isUndefined(adapterOptions.service) || _.isUndefined(adapterOptions.type) || _.isUndefined(adapterOptions.user) || _.isUndefined(adapterOptions.fromAddress) || 
+        _.isUndefined(adapterOptions.clientId) || _.isUndefined(adapterOptions.clientSecret) || _.isUndefined(adapterOptions.refreshToken) || _.isUndefined(adapterOptions.accessToken) ) {
             throw 'Gmail API Adapter requires service, type, fromAddress, user, clientId, clientSecret, refreshToken and accessToken';
         }
     } else if (adapterOptions.service == 'SMTP') {
@@ -18,7 +18,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
             throw 'SimpleParseSMTPAdapter requires user, password, host and fromAddress';
         }
     } else {
-        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.service || !adapterOptions.fromAddress) {
+        if (_.isUndefined(adapterOptions) || _.isUndefined(adapterOptions.user) || _.isUndefined(adapterOptions.password) || _.isUndefined(adapterOptions.service) || _.isUndefined(adapterOptions.fromAddress) ) {
             throw 'SimpleParseSMTPAdapter please choose a supported service (OAuth2Gmail, SMTP, or other) and enter user, password and fromAddress';
         }
     }
