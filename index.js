@@ -2,6 +2,7 @@
 const path = require('path');
 const nodemailer = require("nodemailer");
 const EmailTemplate = require('email-templates');
+const _ = require('lodash');
 
 const SimpleParseSmtpAdapter = (adapterOptions) => {
 
@@ -13,7 +14,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
             throw 'Gmail API Adapter requires service, type, fromAddress, user, clientId, clientSecret, refreshToken and accessToken';
         }
     } else if (adapterOptions.service == 'SMTP') {
-        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.host || !adapterOptions.secure || !adapterOptions.fromAddress ) {
+        if ( _.isUndefined(adapterOptions) || _.isUndefined(adapterOptions.user) || _.isUndefined(adapterOptions.password) || _.isUndefined(adapterOptions.host) || _.isUndefined(adapterOptions.secure) || _.isUndefined(adapterOptions.fromAddress) ) {
             throw 'SimpleParseSMTPAdapter requires user, password, host and fromAddress';
         }
     } else {
