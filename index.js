@@ -88,6 +88,16 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     };
 
     /**
+     * Get User Language if defined
+     * 
+     * @param Parse Object user
+     * @return String email
+     */
+    const getUserLanguage = (user) => {
+        return user.get('language');
+    };
+
+    /**
      * Return an email template with data rendered using email-templates module
      * check module docs: https://github.com/niftylettuce/node-email-templates
      *
@@ -213,27 +223,29 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
         };
 
         if (adapterOptions.templates && adapterOptions.templates.resetPassword) {
+            const userLanguage = getUserLanguage(data.user);
 
             return renderTemplate(adapterOptions.templates.resetPassword.template, data)
             .then((result) => {
-                if (result[`${data.language}.html`]) {
-                    mail.html = result[`${data.language}.html`];
+                
+                if (userLanguage && result[`${userLanguage}.html`]) {
+                    mail.html = result[`${userLanguage}.html`];
                 } else if (result.html) {
                     mail.html = result.html;
                 } else {
                     mail.html = 'Template file not found.';
                 }
 
-                if (result[`${data.language}.text`]) {
-                    mail.text = result[`${data.language}.text`];
+                if (userLanguage && result[`${userLanguage}.text`]) {
+                    mail.text = result[`${userLanguage}.text`];
                 } else if (result.text) {
                     mail.text = result.text;
                 } else {
                     mail.text = 'Template file not found.';
                 }
 
-                if (result[`${data.language}.subject`]) {
-                    mail.subject = result[`${data.language}.subject`];
+                if (userLanguage && result[`${userLanguage}.subject`]) {
+                    mail.subject = result[`${userLanguage}.subject`];
                 } else {
                     mail.subject = adapterOptions.templates.verifyEmail.subject;
                 }
@@ -265,28 +277,29 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
         };
 
         if (adapterOptions.templates && adapterOptions.templates.verifyEmail) {
+            const userLanguage = getUserLanguage(data.user);
 
             return renderTemplate(adapterOptions.templates.verifyEmail.template, data)
             .then((result) => {
 
-                if (result[`${data.language}.html`]) {
-                    mail.html = result[`${data.language}.html`];
+                if (userLanguage && result[`${userLanguage}.html`]) {
+                    mail.html = result[`${userLanguage}.html`];
                 } else if (result.html) {
                     mail.html = result.html;
                 } else {
                     mail.html = 'Template file not found.';
                 }
 
-                if (result[`${data.language}.text`]) {
-                    mail.text = result[`${data.language}.text`];
+                if (userLanguage && result[`${userLanguage}.text`]) {
+                    mail.text = result[`${userLanguage}.text`];
                 } else if (result.text) {
                     mail.text = result.text;
                 } else {
                     mail.text = 'Template file not found.';
                 }
 
-                if (result[`${data.language}.subject`]) {
-                    mail.subject = result[`${data.language}.subject`];
+                if (userLanguage && result[`${userLanguage}.subject`]) {
+                    mail.subject = result[`${userLanguage}.subject`];
                 } else {
                     mail.subject = adapterOptions.templates.verifyEmail.subject;
                 }
