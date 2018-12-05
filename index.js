@@ -60,7 +60,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
 
 
     /**
-     * Creates trasporter for send emails with OAuth2 Gmail
+     * Creates trasporter to send emails with OAuth2 Gmail
      */
     let transporterGeneric = nodemailer.createTransport({
         service: adapterOptions.service,
@@ -71,13 +71,13 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     });
 
     /**
-     * When emailField is defined in adapterOptines return that field
+     * When emailField is defined in adapterOptions return that field
      * if not return the field email and if is undefined returns username
      * 
      * @param Parse Object user
      * @return String email
      */
-    let getUserEmail = (user) => {
+    const getUserEmail = (user) => {
         let email = user.get('email') || user.get('username');
 
         if (adapterOptions.emailField) {
@@ -94,7 +94,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param String template path template
      * @param Object data object with data for use in template
      */
-    let renderTemplate = (template, data) => {
+    const renderTemplate = (template, data) => {
         const templateDir = template;
         let emailTemplate = new EmailTemplate();
 
@@ -115,7 +115,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param mail This object contain to address, subject and email text in plain text
      * @returns {Promise}
      */
-    let sendMail = (mail) => {
+    const sendMail = (mail) => {
         let mailOptions = {
             to: mail.to,
             html: mail.html,
@@ -152,11 +152,11 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     };
 
     /**
-     * Send email using a specif template file
+     * Send email using a specific template file
      * @param data This object should contain {to}, {subject}, {template} and any variable that will be replaced in the template.
      * @returns {Promise}
      */
-    let sendMailWithTemplate = (data) => {
+    const sendMailWithTemplate = (data) => {
         let mail = {
             to: data.to,
             subject: data.subject,
@@ -165,8 +165,25 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
 
         if (data.template) {
             return renderTemplate(data.template, data).then((result) => {
-                mail.html = result.html;
-                mail.text = result.text;
+                if (result[`${data.language}.html`]) {
+                    mail.html = result[`${data.language}.html`];
+                } else if (result.html) {
+                    mail.html = result.html;
+                } else {
+                    mail.html = 'Template file not found.';
+                }
+
+                if (result[`${data.language}.text`]) {
+                    mail.text = result[`${data.language}.text`];
+                } else if (result.text) {
+                    mail.text = result.text;
+                } else {
+                    mail.text = 'Template file not found.';
+                }
+
+                if (result[`${data.language}.subject`]) {
+                    mail.subject = result[`${data.language}.subject`];
+                }
 
                 return sendMail(mail);
             }, (e) => {
@@ -189,7 +206,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param data This object contain {appName}, {link} and {user} user is an object parse of User class
      * @returns {Promise}
      */
-    let sendPasswordResetEmail = (data) => {
+    const sendPasswordResetEmail = (data) => {
         let mail = {
             subject: 'Reset Password',
             to: getUserEmail(data.user)
@@ -199,9 +216,27 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
 
             return renderTemplate(adapterOptions.templates.resetPassword.template, data)
             .then((result) => {
-                mail.html = result.html;
-                mail.text = result.text;
-                mail.subject = adapterOptions.templates.resetPassword.subject;
+                if (result[`${data.language}.html`]) {
+                    mail.html = result[`${data.language}.html`];
+                } else if (result.html) {
+                    mail.html = result.html;
+                } else {
+                    mail.html = 'Template file not found.';
+                }
+
+                if (result[`${data.language}.text`]) {
+                    mail.text = result[`${data.language}.text`];
+                } else if (result.text) {
+                    mail.text = result.text;
+                } else {
+                    mail.text = 'Template file not found.';
+                }
+
+                if (result[`${data.language}.subject`]) {
+                    mail.subject = result[`${data.language}.subject`];
+                } else {
+                    mail.subject = adapterOptions.templates.verifyEmail.subject;
+                }
 
                 return sendMail(mail);
             })
@@ -223,7 +258,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param data This object contain {appName}, {link} and {user} user is an object parse of User class
      * @returns {Promise}
      */
-    let sendVerificationEmail = (data) => {
+    const sendVerificationEmail = (data) => {
         let mail = {
             subject: 'Verify Email',
             to: getUserEmail(data.user)
@@ -233,13 +268,31 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
 
             return renderTemplate(adapterOptions.templates.verifyEmail.template, data)
             .then((result) => {
-                mail.html = result.html;
-                mail.text = result.text;
-                mail.subject = adapterOptions.templates.verifyEmail.subject;
+
+                if (result[`${data.language}.html`]) {
+                    mail.html = result[`${data.language}.html`];
+                } else if (result.html) {
+                    mail.html = result.html;
+                } else {
+                    mail.html = 'Template file not found.';
+                }
+
+                if (result[`${data.language}.text`]) {
+                    mail.text = result[`${data.language}.text`];
+                } else if (result.text) {
+                    mail.text = result.text;
+                } else {
+                    mail.text = 'Template file not found.';
+                }
+
+                if (result[`${data.language}.subject`]) {
+                    mail.subject = result[`${data.language}.subject`];
+                } else {
+                    mail.subject = adapterOptions.templates.verifyEmail.subject;
+                }
 
                 return sendMail(mail);
             }).catch((error) => {
-
                 return new Promise((resolve, reject) => {
                     console.error(error);
                     reject(error);
