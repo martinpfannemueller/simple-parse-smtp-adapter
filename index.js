@@ -94,7 +94,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @return String email
      */
     const getUserLanguage = (user) => {
-        return user.get('language');
+        return user.get('language') || 'english';
     };
 
     /**
@@ -227,7 +227,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
 
             return renderTemplate(adapterOptions.templates.resetPassword.template, data)
             .then((result) => {
-                
+
                 if (userLanguage && result[`${userLanguage}.html`]) {
                     mail.html = result[`${userLanguage}.html`];
                 } else if (result.html) {
