@@ -87,14 +87,26 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
         return email;
     };
 
-    const getUserLocale = (data) => {
-        if (data.user && data.user.get('language')) {
-            if (data.user.get('language') === 'english') {
+    const getUserLocale = async (data) => {        
+        let userData;
+
+        // Parse doesn't pass all user attributes when 
+        if (data.user && data.user.get('language') === undefined) {
+            const parseUserQuery = new Parse.Query(Parse.User);
+            parseUserQuery.equalTo('email', data.user.get('email'))
+    
+            userData = await parseUserQuery.first({useMasterKey: true});
+        } else if (data.user) {
+            userData = data.user;
+        }
+
+        if (userData && userData.get('language')) {
+            if (userData.get('language') === 'english') {
                 return 'en';
-            } else if (data.user.get('language') === 'french') {
+            } else if (userData.get('language') === 'french') {
                 return 'fr';
             } else {
-                return data.user.get('language');
+                return userData.get('language');
             }
         } else if (data.locale) {
             if (data.locale === 'english') {
@@ -116,12 +128,19 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param String template path template
      * @param Object data object with data for use in template
      */
-    const renderTemplate = (template, data) => {
+    const renderTemplate = async (template, data) => {
         const templateDir = template;
 
         let emailTemplate;
 
         if (adapterOptions.i18n) {
+            const userLocale = await getUserLocale(data);
+
+            if (userLocale) {
+                //data.locals = { locale: userLocale };
+                adapterOptions.i18n.defaultLocale = userLocale;
+            }
+
             emailTemplate = new EmailTemplate({i18n: adapterOptions.i18n});
         } else {
             emailTemplate = new EmailTemplate();
@@ -152,12 +171,6 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
             subject: mail.subject,
             from: adapterOptions.fromAddress,
         };
-
-        if (mail.userLocale) {
-            mailOptions.locals = {
-                locale: mail.userLocale,
-            };
-        }
 
         return new Promise((resolve, reject) => {
 
@@ -196,7 +209,6 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
             to: data.to,
             subject: data.subject,
             from: adapterOptions.fromAddress,
-            userLocale: getUserLocale(data)
         };
 
         if (data.template) {
@@ -229,7 +241,6 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
         let mail = {
             subject: 'Reset Password',
             to: getUserEmail(data.user),
-            userLocale: getUserLocale(data)
         };
 
         if (adapterOptions.templates && adapterOptions.templates.resetPassword) {
@@ -265,11 +276,10 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param data This object contain {appName}, {link} and {user} user is an object parse of User class
      * @returns {Promise}
      */
-    const sendVerificationEmail = (data) => {
+    const sendVerificationEmail = async (data) => {
         let mail = {
             subject: 'Verify Email',
             to: getUserEmail(data.user),
-            userLocale: getUserLocale(data)
         };
 
         if (adapterOptions.templates && adapterOptions.templates.verifyEmail) {
