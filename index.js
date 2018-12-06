@@ -90,22 +90,22 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     const getUserLocale = (data) => {
         if (data.user && data.user.language) {
             if (data.user.language === 'english') {
-                mail.userLocale = 'en';
+                return 'en';
             } else if (data.user.language === 'french') {
-                mail.userLocale = 'fr';
+                return 'fr';
             } else {
-                mail.userLocale = data.user.language;
+                return data.user.language;
             }
         } else if (data.locale) {
             if (data.locale === 'english') {
-                mail.userLocale = 'en';
+                return 'en';
             } else if (data.locale === 'french') {
-                mail.userLocale = 'fr';
+                return 'fr';
             } else {
-                mail.userLocale = data.locale;
+                return data.locale;
             }
         } else {
-            mail.userLocale = 'en';
+            return 'en';
         }
     }
 
@@ -155,7 +155,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
 
         if (mail.userLocale) {
             mailOptions.locals = {
-                locale: 'en',
+                locale: mail.userLocale,
             };
         }
 
