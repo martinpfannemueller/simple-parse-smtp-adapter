@@ -88,13 +88,13 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     };
 
     const getUserLocale = (data) => {
-        if (data.user && data.user.language) {
-            if (data.user.language === 'english') {
+        if (data.user && data.user.get('language')) {
+            if (data.user.get('language') === 'english') {
                 return 'en';
-            } else if (data.user.language === 'french') {
+            } else if (data.user.get('language') === 'french') {
                 return 'fr';
             } else {
-                return data.user.language;
+                return data.user.get('language');
             }
         } else if (data.locale) {
             if (data.locale === 'english') {
