@@ -216,6 +216,10 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
                 mail.html = result.html;
                 mail.text = result.text;
 
+                if (result.subject) {
+                    mail.subject = result.subject;
+                }
+
                 return sendMail(mail);
             }, (e) => {
 
