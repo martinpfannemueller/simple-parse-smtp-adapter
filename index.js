@@ -30,7 +30,6 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
         host: adapterOptions.host,
         port: adapterOptions.port,
         secure: adapterOptions.secure,
-        requireTLS: adapterOptions.requireTLS || false,
         auth: {
             type: adapterOptions.type,
             user: adapterOptions.user,
@@ -49,6 +48,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
         host: adapterOptions.host,
         port: adapterOptions.port,
         secure: adapterOptions.secure,
+        requireTLS: adapterOptions.requireTLS || false,
         name: adapterOptions.name || '127.0.0.1',
         auth: {
             user: adapterOptions.user,
