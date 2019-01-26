@@ -13,7 +13,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
             throw 'Gmail API Adapter requires service, type, fromAddress, user, clientId, clientSecret, refreshToken and accessToken';
         }
     } else if (adapterOptions.service == 'SMTP') {
-        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.host || !adapterOptions.secure || !adapterOptions.fromAddress ) {
+        if (!adapterOptions || !adapterOptions.user || !adapterOptions.password || !adapterOptions.host || !adapterOptions.fromAddress ) {
             throw 'SimpleParseSMTPAdapter requires user, password, host and fromAddress';
         }
     } else {
