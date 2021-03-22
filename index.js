@@ -49,6 +49,8 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
         host: adapterOptions.host,
         port: adapterOptions.port,
         secure: adapterOptions.secure,
+        requireTLS: adapterOptions.requireTLS || false,
+        tls: adapterOptions.tls,
         name: adapterOptions.name || '127.0.0.1',
         auth: {
             user: adapterOptions.user,
@@ -61,7 +63,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
 
 
     /**
-     * Creates trasporter for send emails with OAuth2 Gmail
+     * Creates trasporter to send emails with OAuth2 Gmail
      */
     let transporterGeneric = nodemailer.createTransport({
         service: adapterOptions.service,
@@ -72,13 +74,13 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     });
 
     /**
-     * When emailField is defined in adapterOptines return that field
+     * When emailField is defined in adapterOptions return that field
      * if not return the field email and if is undefined returns username
      * 
      * @param Parse Object user
      * @return String email
      */
-    let getUserEmail = (user) => {
+    const getUserEmail = (user) => {
         let email = user.get('email') || user.get('username');
 
         if (adapterOptions.emailField) {
@@ -88,6 +90,40 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
         return email;
     };
 
+    const getUserLocale = async (data) => {        
+        let userData;
+
+        // Parse doesn't pass all user attributes when 
+        if (data.user && data.user.get('language') === undefined) {
+            const parseUserQuery = new Parse.Query(Parse.User);
+            parseUserQuery.equalTo('email', data.user.get('email'))
+    
+            userData = await parseUserQuery.first({useMasterKey: true});
+        } else if (data.user) {
+            userData = data.user;
+        }
+
+        if (userData && userData.get('language')) {
+            if (userData.get('language') === 'english') {
+                return 'en';
+            } else if (userData.get('language') === 'french') {
+                return 'fr';
+            } else {
+                return userData.get('language');
+            }
+        } else if (data.locale) {
+            if (data.locale === 'english') {
+                return 'en';
+            } else if (data.locale === 'french') {
+                return 'fr';
+            } else {
+                return data.locale;
+            }
+        } else {
+            return 'en';
+        }
+    }
+
     /**
      * Return an email template with data rendered using email-templates module
      * check module docs: https://github.com/niftylettuce/node-email-templates
@@ -95,9 +131,23 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param String template path template
      * @param Object data object with data for use in template
      */
-    let renderTemplate = (template, data) => {
+    const renderTemplate = async (template, data) => {
         const templateDir = template;
-        let emailTemplate = new EmailTemplate();
+
+        let emailTemplate;
+
+        if (adapterOptions.i18n) {
+            const userLocale = await getUserLocale(data);
+
+            if (userLocale) {
+                //data.locals = { locale: userLocale };
+                adapterOptions.i18n.defaultLocale = userLocale;
+            }
+
+            emailTemplate = new EmailTemplate({i18n: adapterOptions.i18n});
+        } else {
+            emailTemplate = new EmailTemplate();
+        }
 
         return new Promise((resolve, reject) => {
             emailTemplate.renderAll(templateDir, data)
@@ -116,13 +166,13 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param mail This object contain to address, subject and email text in plain text
      * @returns {Promise}
      */
-    let sendMail = (mail) => {
+    const sendMail = (mail) => {
         let mailOptions = {
             to: mail.to,
             html: mail.html,
             text: mail.text,
             subject: mail.subject,
-            from: adapterOptions.fromAddress
+            from: adapterOptions.fromAddress,
         };
 
         return new Promise((resolve, reject) => {
@@ -153,21 +203,25 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
     };
 
     /**
-     * Send email using a specif template file
+     * Send email using a specific template file
      * @param data This object should contain {to}, {subject}, {template} and any variable that will be replaced in the template.
      * @returns {Promise}
      */
-    let sendMailWithTemplate = (data) => {
+    const sendMailWithTemplate = (data) => {
         let mail = {
             to: data.to,
             subject: data.subject,
-            from: adapterOptions.fromAddress
+            from: adapterOptions.fromAddress,
         };
 
         if (data.template) {
             return renderTemplate(data.template, data).then((result) => {
                 mail.html = result.html;
                 mail.text = result.text;
+
+                if (result.subject) {
+                    mail.subject = result.subject;
+                }
 
                 return sendMail(mail);
             }, (e) => {
@@ -190,10 +244,10 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param data This object contain {appName}, {link} and {user} user is an object parse of User class
      * @returns {Promise}
      */
-    let sendPasswordResetEmail = (data) => {
+    const sendPasswordResetEmail = (data) => {
         let mail = {
             subject: 'Reset Password',
-            to: getUserEmail(data.user)
+            to: getUserEmail(data.user),
         };
 
         if (adapterOptions.templates && adapterOptions.templates.resetPassword) {
@@ -202,7 +256,12 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
             .then((result) => {
                 mail.html = result.html;
                 mail.text = result.text;
-                mail.subject = adapterOptions.templates.resetPassword.subject;
+
+                if (result.subject) {
+                    mail.subject = result.subject;
+                } else {
+                    mail.subject = adapterOptions.templates.resetPassword.subject;
+                }
 
                 return sendMail(mail);
             })
@@ -224,23 +283,28 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
      * @param data This object contain {appName}, {link} and {user} user is an object parse of User class
      * @returns {Promise}
      */
-    let sendVerificationEmail = (data) => {
+    const sendVerificationEmail = async (data) => {
         let mail = {
             subject: 'Verify Email',
-            to: getUserEmail(data.user)
+            to: getUserEmail(data.user),
         };
 
         if (adapterOptions.templates && adapterOptions.templates.verifyEmail) {
 
             return renderTemplate(adapterOptions.templates.verifyEmail.template, data)
             .then((result) => {
+
                 mail.html = result.html;
                 mail.text = result.text;
-                mail.subject = adapterOptions.templates.verifyEmail.subject;
 
+                if (result.subject) {
+                    mail.subject = result.subject;
+                } else {
+                    mail.subject = adapterOptions.templates.verifyEmail.subject;
+                }
+                
                 return sendMail(mail);
             }).catch((error) => {
-
                 return new Promise((resolve, reject) => {
                     console.error(error);
                     reject(error);
@@ -249,7 +313,6 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
 
         } else {
             mail.text = data.link;
-
             return sendMail(mail);
         }
     };
