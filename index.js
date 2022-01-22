@@ -1,5 +1,4 @@
 "use strict";
-const path = require('path');
 const nodemailer = require("nodemailer");
 const EmailTemplate = require('email-templates');
 const _ = require('lodash');
