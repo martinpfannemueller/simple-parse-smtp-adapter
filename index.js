@@ -187,6 +187,16 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
                     selectedTransporter = transporterGeneric;
                 }
 
+                // Skip sending emails to blacklisted domains
+                if (adapterOptions.blacklistedDomains) {
+                    const domain = mailOptions.to.split('@').pop();
+                    if (adapterOptions.blacklistedDomains.includes(domain)) {
+                        const message = `Skipped sending email to ${mailOptions.to} as domain ${domain} is blacklisted.`;
+                        console.log(message);
+                        resolve(message);
+                    }
+                }
+
                 selectedTransporter.sendMail(mailOptions, (error, info) => {
                     if (error) {
                         console.error(error);
