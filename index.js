@@ -194,6 +194,7 @@ const SimpleParseSmtpAdapter = (adapterOptions) => {
                         const message = `Skipped sending email to ${mailOptions.to} as domain ${domain} is blacklisted.`;
                         console.log(message);
                         resolve(message);
+                        return;
                     }
                 }
 
